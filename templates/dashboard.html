@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}New listing · AI Property Video Generator{% endblock %}
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Real estate promo studio</p>
+  <h1>Turn a listing and photos into a video-ready job.</h1>
+  <p class="lede">Enter only facts you know. Blank fields stay blank. Upload 4 to 8 property images, then save the job. Video rendering comes in a later phase.</p>
+</section>
+
+<form id="listing-form" class="studio-grid" action="{{ url_for('main.generate') }}" method="post" enctype="multipart/form-data" novalidate>
+  <div class="panel">
+    <h2>Property details</h2>
+    <p class="panel-help">Required fields are marked. Optional numbers are left out of later scripts if you skip them.</p>
+
+    <div id="form-errors" class="error-box {% if not errors %}is-hidden{% endif %}" role="alert">
+      {% for field, messages in errors.items() %}
+        {% for message in messages %}
+          <p>{{ message }}</p>
+        {% endfor %}
+      {% endfor %}
+    </div>
+
+    <label>
+      Property title *
+      <input type="text" name="title" maxlength="120" required value="{{ values.get('title', '') }}" placeholder="e.g. 3 BHK at Koregaon Park">
+    </label>
+
+    <div class="field-row">
+      <label>
+        Property type
+        <select name="property_type">
+          {% for option in property_types %}
+            <option value="{{ option }}" {% if values.get('property_type') == option %}selected{% endif %}>
+              {{ option if option else 'Select (optional)' }}
+            </option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        Location *
+        <input type="text" name="location" maxlength="160" required value="{{ values.get('location', '') }}" placeholder="City, neighbourhood">
+      </label>
+    </div>
+
+    <div class="field-row three">
+      <label>
+        Price
+        <input type="number" name="price" min="0" step="0.01" value="{{ values.get('price', '') }}" placeholder="Leave blank if unknown">
+      </label>
+      <label>
+        Currency
+        <select name="currency">
+          {% for option in currencies %}
+            <option value="{{ option }}" {% if values.get('currency', 'INR') == option %}selected{% endif %}>{{ option }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        Call to action
+        <input type="text" name="call_to_action" maxlength="200" value="{{ values.get('call_to_action', '') }}" placeholder="Contact the listing agent">
+      </label>
+    </div>
+
+    <div class="field-row four">
+      <label>
+        Bedrooms
+        <input type="number" name="bedrooms" min="0" step="1" value="{{ values.get('bedrooms', '') }}">
+      </label>
+      <label>
+        Bathrooms
+        <input type="number" name="bathrooms" min="0" step="0.5" value="{{ values.get('bathrooms', '') }}">
+      </label>
+      <label>
+        Area
+        <input type="number" name="area" min="0" step="0.01" value="{{ values.get('area', '') }}">
+      </label>
+      <label>
+        Area unit
+        <select name="area_unit">
+          {% for option in area_units %}
+            <option value="{{ option }}" {% if values.get('area_unit', 'sqft') == option %}selected{% endif %}>{{ option }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+
+    <label>
+      Highlights
+      <textarea name="highlights" rows="3" maxlength="1000" placeholder="One fact per line. Only write amenities that are true.">{{ values.get('highlights', '') }}</textarea>
+    </label>
+
+    <label>
+      Description
+      <textarea name="description" rows="5" maxlength="4000" placeholder="Paste the real listing copy. Do not add features you cannot confirm.">{{ values.get('description', '') }}</textarea>
+    </label>
+  </div>
+
+  <div class="panel">
+    <h2>Photos &amp; options</h2>
+    <p class="panel-help">JPG, PNG, or WebP · {{ min_images }}–{{ max_images }} images · 10 MB each. First image will be the hero shot later.</p>
+
+    <div id="drop-zone" class="drop-zone" tabindex="0">
+      <input id="image-input" type="file" name="images" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple>
+      <p><strong>Drop photos here</strong> or click to browse</p>
+      <p class="counter" id="image-counter">0 / {{ min_images }} minimum · {{ max_images }} max</p>
+    </div>
+    <div id="preview-grid" class="preview-grid" aria-live="polite"></div>
+
+    <fieldset class="options">
+      <legend>Later-phase options</legend>
+      <label class="check">
+        <input type="checkbox" name="voice_over" {% if values.get('voice_over') %}checked{% endif %}>
+        Include voice-over when video is added
+      </label>
+      <label class="check">
+        <input type="checkbox" name="use_background_music" {% if values.get('use_background_music') %}checked{% endif %}>
+        Use background music when video is added
+      </label>
+      <label>
+        Optional music file
+        <input type="file" name="music" accept=".mp3,.wav,.ogg,.m4a,audio/mpeg,audio/wav,audio/ogg,audio/mp4">
+      </label>
+    </fieldset>
+
+    <button id="submit-btn" class="gold-btn" type="submit">Save listing job</button>
+    <p class="fine-print">Video export is not available in Phase 1. This saves a validated job folder only.</p>
+  </div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+  window.APP_LIMITS = {
+    minImages: {{ min_images }},
+    maxImages: {{ max_images }},
+    maxImageBytes: 10 * 1024 * 1024
+  };
+</script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% endblock %}

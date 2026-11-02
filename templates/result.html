@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Job {{ job.job_id }} · AI Property Video Generator{% endblock %}
+{% block content %}
+<section class="hero compact">
+  <p class="eyebrow">Job saved</p>
+  <h1>{{ job.listing.title }}</h1>
+  <p class="lede">{{ job.listing.location }} · ID {{ job.job_id }}</p>
+</section>
+
+<div class="studio-grid">
+  <div class="panel">
+    <h2>Listing record</h2>
+    <p class="status-chip">{{ job.status }} · phase {{ job.phase }}</p>
+    <dl class="facts">
+      {% for key, value in job.listing.items() %}
+        {% if value not in ('', None, False) %}
+          <div>
+            <dt>{{ key.replace('_', ' ') }}</dt>
+            <dd>{{ value if value is not sameas true else 'Yes' }}</dd>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </dl>
+    {% if job.skipped_fields %}
+      <p class="panel-help">Skipped (not invented): {{ job.skipped_fields | join(', ') }}</p>
+    {% endif %}
+    <p class="fine-print">{{ job.notes }}</p>
+    <a class="gold-btn ghost" href="{{ url_for('main.dashboard') }}">Create another listing</a>
+  </div>
+
+  <div class="panel">
+    <h2>Saved photos ({{ job.images | length }})</h2>
+    <div class="preview-grid saved">
+      {% for name in job.images %}
+        <figure class="preview-card">
+          <img src="{{ url_for('main.job_image', job_id=job.job_id, filename=name) }}" alt="Property photo {{ loop.index }}">
+          <figcaption>{{ loop.index }} · {{ name }}</figcaption>
+        </figure>
+      {% endfor %}
+    </div>
+    {% if job.music_file %}
+      <p class="panel-help">Music stored as {{ job.music_file }}</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
